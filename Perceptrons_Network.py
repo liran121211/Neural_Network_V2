@@ -4,6 +4,11 @@ from math import exp
 from matplotlib.animation import FuncAnimation as FA
 import time
 import random as rnd
+from colorama import init, Fore, Back, Style
+
+#Colored Text!
+init()
+
 
 def multiplyMatrix(matrixA, matrixB):
     if ( isinstance(matrixA, (np.ndarray)) and isinstance(matrixB, (np.ndarray))):
@@ -21,40 +26,7 @@ def sigmoid(n):
     return (1 / (1 + exp(-n) ) )
 
 def derivativeSigmoid(y):
-    #return sigmoid(n) * (1 - sigmoid(n))
     return y * (1 - y)
-
-def setup(inputNodes = 2, hiddenNodes = 2, outputNodes = 1, iterations = 500,jumps = 1):
-    NN = NeuralNetwork(inputNodes,hiddenNodes,outputNodes) #Init NeuralNetwork Object
-    print('Initializing Neural Network ({0}X{1}X{2})'.format(inputNodes, hiddenNodes, outputNodes))
-    time.sleep(1)
-    print('Calculating Matrixes of DATA...')
-    DATA = [ { 'inputs': [0, 1] , 'target': [1] },
-            { 'inputs': [1, 0] , 'target': [1] },
-            { 'inputs': [0, 0] , 'target': [0] },
-            { 'inputs': [1, 1] , 'target': [0] }
-            ]
-
-    graphicArray = np.empty([iterations, 5])
-
-    for row in range(iterations):
-        randomize_item = rnd.randint(0, 3)
-        for column in range(len(DATA)):
-            NN.train(DATA[randomize_item]['inputs'],DATA[randomize_item]['target'])
-
-        graphicArray[row, 0] = NN.prediction(np.array([0, 1]).reshape(2, 1))[0]
-        graphicArray[row, 1] = NN.prediction(np.array([1, 0]).reshape(2, 1))[0]
-        graphicArray[row, 2] = NN.prediction(np.array([1, 1]).reshape(2, 1))[0]
-        graphicArray[row, 3] = NN.prediction(np.array([0, 0]).reshape(2, 1))[0]
-        graphicArray[row, 4] = 1
-
-    print('Done Filling MatPlotLib Array...\n Initiating Graphics...')
-    print('Final Predictions: {0:.2f}|{1:.2f}|{2:.2f}|{3:.2f}'.format(graphicArray[iterations-1, 0],
-                                                               graphicArray[iterations-1, 1],
-                                                               graphicArray[iterations-1, 2],
-                                                               graphicArray[iterations-1, 3]) )
-    NN.draw(graphicArray,jumps)
-    return NN, graphicArray
 
 class NeuralNetwork():
 
@@ -91,7 +63,9 @@ class NeuralNetwork():
                         self.bias_output) )
 
     def prediction(self, inputs_array): #Activision Function
-
+        if (len(inputs_array) != len(self.weights_input_hidden[0])):
+            print(Fore.RED + 'You sent [{0}X{1}] as Input Array for prediction but it is not the same dimension as [{2}] of Weights_Input_Hidden object value!'.format( len(inputs_array), 1, self.weights_input_hidden.shape ))
+            exit()
         input = np.array(inputs_array).reshape(len(inputs_array), 1)
 
         # Multiply Matrixes of Input Layer && Hidden Layer
@@ -142,8 +116,8 @@ class NeuralNetwork():
         # Calculate Gradient Descent
         #Claculate ∇Wᵢⱼ(HO):
         gradient = mapMatrix(output, derivativeSigmoid)
-        gradient = np.dot(gradient, output_error) # Calculate Error(vector) * (Derivate'(output))
-        gradient = np.dot(gradient, self.learning_rate) # Calculate Error(vector) * (Derivate'(output)) * Learning_Rate
+        gradient = multiplyMatrix(gradient, output_error) # Calculate Error(vector) * (Derivate'(output))
+        gradient = multiplyMatrix(gradient, self.learning_rate) # Calculate Error(vector) * (Derivate'(output)) * Learning_Rate
 
 
         # Calculate Δ Deltas
@@ -162,8 +136,8 @@ class NeuralNetwork():
 
         # Claculate ∇Wᵢⱼ(IH):
         hidden_gradient = mapMatrix(hidden, derivativeSigmoid)
-        hidden_gradient = np.multiply(hidden_gradient, hidden_error)  # Calculate Error(vector) * (Derivate'(output))
-        hidden_gradient = np.multiply(hidden_gradient, self.learning_rate)  # Calculate Error(vector) * (Derivate'(output)) * Learning_Rate
+        hidden_gradient = multiplyMatrix(hidden_gradient, hidden_error)  # Calculate Error(vector) * (Derivate'(output))
+        hidden_gradient = multiplyMatrix(hidden_gradient, self.learning_rate)  # Calculate Error(vector) * (Derivate'(output)) * Learning_Rate
 
 
 
@@ -201,4 +175,4 @@ class NeuralNetwork():
         plt.show()
 
 
-setup(2,2,1,10000,10)
+
